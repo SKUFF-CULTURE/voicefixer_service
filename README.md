@@ -196,7 +196,7 @@ You can clone this repo and try to run test.py inside the *test* folder.
 
 > However, the layer containing `voicefixer` is the last added layer, making any rebuild if you change sources relatively small (~200MB at a time as the weights get refreshed on image build).
 
-The `Dockerfile` can be viewed [here](Dockerfile).
+The `Dockerfile` can be viewed [here](Dockerfile.old).
 
 After cloning the repo:
 

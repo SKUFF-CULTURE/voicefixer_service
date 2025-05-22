@@ -1,32 +1,73 @@
-FROM python:3.11-bookworm
+# Используем базовый образ с CUDA и cuDNN для разработки
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
-ARG USERNAME=voicefixer
-ARG USER_UID=1000
-ARG USER_GID=1000
-ARG WORKDIR_PATH=/opt/voicefixer
-ENV PYTHONUNBUFFERED=1
+# Устанавливаем временную зону в неинтерактивном режиме
+ENV TZ=Europe/Moscow \
+    DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
-RUN pip install numpy==1.26.1 librosa==0.10.1 pytz progressbar mpmath zipp watchdog validators tzlocal \
-    tzdata tornado toolz toml tenacity sympy smmap six rpds-py pyyaml pyparsing pygments pyarrow protobuf \
-    pillow nvidia-nvtx-cu12 nvidia-nvjitlink-cu12 nvidia-nccl-cu12 nvidia-curand-cu12 nvidia-cufft-cu12 \
-    nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12 nvidia-cuda-cupti-cu12 nvidia-cublas-cu12 networkx mdurl \
-    MarkupSafe kiwisolver fsspec fonttools filelock cycler contourpy click cachetools blinker attrs triton \
-    referencing python-dateutil nvidia-cusparse-cu12 nvidia-cudnn-cu12 markdown-it-py jinja2 importlib-metadata \
-    gitdb rich pydeck pandas nvidia-cusolver-cu12 matplotlib jsonschema-specifications GitPython torchlibrosa \
-    torch jsonschema altair streamlit
+# Устанавливаем системные зависимости и Python 3.11
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    software-properties-common \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    wget \
+    curl \
+    libncurses5-dev \
+    libncursesw5-dev \
+    liblzma-dev \
+    tk-dev \
+    libgdbm-dev \
+    libgdbm-compat-dev \
+    libnss3-dev \
+    libffi-dev \
+    liblzma-dev \
+    libmysqlclient-dev \
+    libpq-dev \
+    git \
+    bash \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get install -y python3.11 python3.11-dev python3.11-venv \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
+    && update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11 \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p ${WORKDIR_PATH}
+# Создаем и активируем виртуальное окружение
+RUN python3.11 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-ADD . $WORKDIR_PATH
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m -d ${WORKDIR_PATH} $USERNAME \
-    && chown -R $USERNAME:$USERNAME ${WORKDIR_PATH}
+# Копируем файлы зависимостей
+COPY requirements.txt install_req.sh /tmp/
 
-WORKDIR ${WORKDIR_PATH}
-USER $USERNAME
-ENV PATH="${PATH}:${WORKDIR_PATH}/.local/bin"
+# Устанавливаем зависимости и запускаем скрипт
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install -r /tmp/requirements.txt \
+    && chmod +x /tmp/install_req.sh \
+    && /tmp/install_req.sh \
+    && rm /tmp/requirements.txt /tmp/install_req.sh
 
-RUN pip install .
-RUN voicefixer --weight_prepare
+# Копируем остальной код
+COPY . /app
+WORKDIR /app
 
-ENTRYPOINT ["voicefixer"]
+# Настройки CUDA
+ENV CUDA_HOME=/usr/local/cuda-11.8 \
+    LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH \
+    NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Проверяем установленные версии
+RUN python --version \
+    && pip --version \
+    && nvcc --version \
+    && ldconfig -p | grep cudnn
+
+# Запускаем приложение
+CMD ["python", "fixer.py"]

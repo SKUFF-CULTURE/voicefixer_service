@@ -50,19 +50,18 @@ class VoiceImprover:
                   f"(VRAM: {memory:.1f}GB)")
         return True, status
 
-    def _restore_audio(self, input_path: str, output_dir: str, mode: int = 0) -> str:
+    def _restore_audio(self, input_path: str, output_path: str, mode: int = 0) -> str:
         """Restore vocal track with detailed logging.
 
         Args:
             input_path: Path to source audio file
-            output_dir: Directory for processed files
+            output_path: Full path for output file
             mode: VoiceFixer processing mode (0-2)
 
         Returns:
             Path to restored audio file
         """
         self.logger.info(f"Processing audio: {os.path.basename(input_path)}")
-        output_path = os.path.join(output_dir, "restored.wav")
 
         try:
             # Verify input file
@@ -141,12 +140,12 @@ class VoiceImprover:
             self.logger.error(f"Enhancement failed: {str(e)}", exc_info=True)
             raise
 
-    def process(self, input_path: str, output_dir: str, mode: int = 0) -> Optional[str]:
+    def process(self, input_path: str, output_path: str, mode: int = 0) -> Optional[str]:
         """Complete audio processing pipeline.
 
         Args:
             input_path: Source audio file path
-            output_dir: Output directory path
+            output_path: Full output file path (including filename)
             mode: Processing mode (0=basic, 1=aggressive, 2=experimental)
 
         Returns:
@@ -155,34 +154,35 @@ class VoiceImprover:
         self.logger.info(f"Starting processing pipeline for {input_path}")
 
         try:
-            # Create output directory
-            os.makedirs(output_dir, exist_ok=True)
-            self.logger.debug(f"Output directory: {output_dir}")
+            # Create output directory if needed
+            output_dir = os.path.dirname(output_path)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
+                self.logger.debug(f"Output directory: {output_dir}")
 
             # 1. Restoration phase
-            restored_path = self._restore_audio(input_path, output_dir, mode)
+            restored_path = os.path.join(output_dir, "restored.wav") if output_dir else "restored.wav"
+            restored_path = self._restore_audio(input_path, restored_path, mode)
 
             # 2. Enhancement phase
             final_audio = self._enhance_audio(input_path, restored_path)
 
             # 3. Export results
-            timestamp = int(time.time())
-            final_path = os.path.join(output_dir, f"enhanced_{timestamp}.wav")
-            final_audio.export(final_path, format="wav")
+            final_audio.export(output_path, format="wav")
 
             # Verify output
-            if not os.path.exists(final_path):
+            if not os.path.exists(output_path):
                 raise RuntimeError("Final output file not created")
 
             # Log final stats
             duration = len(final_audio) / 1000
-            size = os.path.getsize(final_path) / (1024 ** 2)
+            size = os.path.getsize(output_path) / (1024 ** 2)
             self.logger.info(
-                f"SUCCESS: Created {final_path}\n"
+                f"SUCCESS: Created {output_path}\n"
                 f"Duration: {duration:.1f}s | Size: {size:.1f}MB"
             )
 
-            return final_path
+            return output_path
 
         except Exception as e:
             self.logger.error(f"Processing pipeline failed: {str(e)}", exc_info=True)
@@ -195,7 +195,7 @@ if __name__ == "__main__":
 
     result = processor.process(
         input_path="audio/input.wav",
-        output_dir="audio/processed",
+        output_path="audio/processed/enhanced_output.wav",
         mode=1
     )
 

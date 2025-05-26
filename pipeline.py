@@ -71,8 +71,9 @@ def run(input_path, nfs_dir, uuid: 0):
         mixer = AudioMixer(vocal_path=final_vocal_path, instrumental_path=instruments)
         mixer.normalize_audio(target_dBFS=-18.0, instrumental_offset=-2.5)
         mixer.align_durations(strategy="pad")
+        final_output_path = work_dir + make_name(audio_path, suffix='-improved-mastered')
         mixer.export_mixed_audio(
-            work_dir + make_name(audio_path, suffix='-improved-mastered'),
+            final_vocal_path,
             vocal_volume=0.95,
             instrumental_volume=0.85,
             fade_duration=800
@@ -84,10 +85,10 @@ def run(input_path, nfs_dir, uuid: 0):
 
         process_time = time.time() - start_time
         logger.info(f"Done! Pipeline worked in {process_time:.2f}s")
-        return 0
+        return 0, final_output_path, final_vocal_path
     except Exception as e:
         logger.error(e)
-        return 1
+        return 1, None, None
 
 
 

@@ -65,7 +65,7 @@ def serve(key, value):
 
 if __name__ == "__main__":
     logger.info(f"{NAME} | ⏳ Sleeping for {ACTOR_GRACE_PERIOD} seconds...")
-    nfs_tools.mount_nfs_in_self(nfs_server_ip=NFS_IP, nfs_path=NFS_MOUNT_POINT, mount_point=NFS_MOUNT_POINT)
+    logger.info(f"NFS mount: {nfs_tools.mount_nfs_in_self(nfs_server_ip=NFS_IP, nfs_path=NFS_MOUNT_POINT, mount_point=NFS_MOUNT_POINT)}")
     time.sleep(ACTOR_GRACE_PERIOD)
     logger.info("Running external health-checks...")
     if not nfs_tools.check_nfs_server(NFS_MOUNT_POINT):

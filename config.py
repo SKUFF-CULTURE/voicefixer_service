@@ -1,4 +1,8 @@
-KAFKA_BROKER = "kafka:9092"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+KAFKA_BROKER = os.getenv("KAFKA_BROKER", "kafka:9092")
 
 KAFKA_TOPICS = {
     "nettools": "app.main.nettools",
@@ -18,7 +22,7 @@ KAFKA_CONSUMER_GROUPS = {
 
 ACTOR_GRACE_PERIOD = 20
 
-NFS_MOUNT_POINT = "/mnt/nfs_share/"
+NFS_MOUNT_POINT = os.getenv("NFS_MOUNT_POINT", "/mnt/nfs_share/")
 
 '''
 DOWNLOAD_FOLDER = NFS_MOUNT_POINT + "/downloads/archives/"

@@ -37,9 +37,9 @@ def serve(key, value):
 
         logger.info(f"Assigned nfs uuid: {pipeline_uuid}")
 
-        pipeline_code, final_path, vocals_path = pipeline.run(input_path=file_path, nfs_dir=file_path, uuid=pipeline_uuid)
+        pipeline_error_flag, final_path, vocals_path = pipeline.run(input_path=file_path, nfs_dir=file_path, uuid=pipeline_uuid)
 
-        if pipeline_code is False:
+        if pipeline_error_flag is False:
             logger.info(f"Pipeline {pipeline_uuid} ended successfully!")
         else:
             logger.error(f"Pipeline {pipeline_uuid} encountered internal errors!")
@@ -55,6 +55,7 @@ def serve(key, value):
         logger.info(f"⏩ Producer is sending message to {producer_topic}")
         producer.send_message(key=key, value=message)
 
+        logger.info(f"🚀 Work cycle on {pipeline_uuid} done!")
 
     except json.JSONDecodeError as e:
         logger.error(f"{NAME} | ❌ JSON decoding error: {e}")

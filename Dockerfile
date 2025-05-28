@@ -1,10 +1,10 @@
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
+
 # Ускоряем загрузку пакетов
 RUN sed -i 's|http://archive.ubuntu.com|http://mirror.yandex.ru/ubuntu|g' /etc/apt/sources.list
-
 # Устанавливаем только необходимые системные зависимости
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends --fix-missing \
     python3-venv \
     python3-distutils \
     ffmpeg \
@@ -19,13 +19,13 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip setuptools wheel
 
 # Копируем и устанавливаем зависимости
-COPY suicide.txt /tmp/
-RUN pip install --no-cache-dir -r /tmp/suicide.txt
+COPY requirements.txt /tmp/
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 RUN pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 # Устанавливаем специфичные пакеты с явным указанием версий
-RUN pip install --no-cache-dir --no-deps\
+RUN pip install --no-cache-dir --no-deps \
     voicefixer \
     demucs==4.0.1
 
@@ -39,4 +39,4 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 COPY . .
 
-CMD ["python", "pipeline.py"]
+CMD ["python", "service.py"]

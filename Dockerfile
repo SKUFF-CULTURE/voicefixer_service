@@ -39,4 +39,4 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 COPY . .
 
-CMD ["python", "pipeline.py"]
+CMD ["python", "service.py"]

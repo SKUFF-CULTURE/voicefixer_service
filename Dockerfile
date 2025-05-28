@@ -19,8 +19,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip setuptools wheel
 
 # Копируем и устанавливаем зависимости
-COPY suicide.txt /tmp/
-RUN pip install --no-cache-dir -r /tmp/suicide.txt
+COPY requirements.txt /tmp/
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 RUN pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118
 

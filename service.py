@@ -55,6 +55,7 @@ def serve(key, value):
         logger.info(f"⏩ Producer is sending message to {producer_topic}")
         producer.send_message(key=key, value=message)
 
+        logger.info(f"🚀 Work cycle on {pipeline_uuid} done!")
 
     except json.JSONDecodeError as e:
         logger.error(f"{NAME} | ❌ JSON decoding error: {e}")

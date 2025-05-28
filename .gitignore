@@ -4,3 +4,9 @@ dist
 *egg*
 .idea
 build
+LICENSE
+CHANGELOG.md
+Makefile
+README.md
+audio
+

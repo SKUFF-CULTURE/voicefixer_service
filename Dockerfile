@@ -25,7 +25,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 RUN pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 # Устанавливаем специфичные пакеты с явным указанием версий
-RUN pip install --no-cache-dir --no-deps\
+RUN pip install --no-cache-dir --no-deps \
     voicefixer \
     demucs==4.0.1
 

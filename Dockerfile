@@ -4,7 +4,7 @@ FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 # Ускоряем загрузку пакетов
 RUN sed -i 's|http://archive.ubuntu.com|http://mirror.yandex.ru/ubuntu|g' /etc/apt/sources.list
 # Устанавливаем только необходимые системные зависимости
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends --fix-missing \
     python3-venv \
     python3-distutils \
     ffmpeg \
